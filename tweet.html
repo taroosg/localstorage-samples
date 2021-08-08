@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>twitterみたいなやつ</title>
+</head>
+
+<body>
+  <fieldset>
+    <h1>twitterみたいなやつ</h1>
+    <nav>
+      <a href="./index.html">
+        <p>もどる</p>
+      </a>
+    </nav>
+  </fieldset>
+
+  <fieldset>
+    <legend>つぶやく</legend>
+    <input type="text" id="tweetInput">
+    <button id="tweetButton">tweet</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>ぜんぶ消す</legend>
+    <button id="deleteButton">Delete</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>いちらん</legend>
+    <ul id="tweetList"></ul>
+  </fieldset>
+
+  <script>
+    let tweetArray = [];
+
+    const pushTweetToArray = (tweetArray, tweetData) => [...tweetArray, tweetData];
+
+    const createTweetTags = (tweetArray) => tweetArray.map((x, i) => `<li><p>${i}: ${new Date(x.time * 1000)}</p><p>${x.tweet}</p></li>`).reverse().join('');
+
+    document.getElementById('tweetButton').addEventListener('click', () => {
+      tweetArray = pushTweetToArray(tweetArray, { tweet: document.getElementById('tweetInput').value, time: (new Date()).getTime() })
+      localStorage.setItem('tweetList', JSON.stringify(tweetArray));
+      document.getElementById('tweetList').innerHTML = createTweetTags(tweetArray);
+      document.getElementById('tweetInput').value = '';
+    });
+
+    document.getElementById('deleteButton').addEventListener('click', () => {
+      localStorage.removeItem('tweetList');
+      tweetArray = [];
+      document.getElementById('tweetList').innerHTML = createTweetTags(tweetArray);
+    });
+
+    tweetArray = !localStorage.getItem('tweetList') ? [] : JSON.parse(localStorage.getItem('tweetList'));
+    document.getElementById('tweetList').innerHTML = createTweetTags(tweetArray);
+
+  </script>
+</body>
+
+</html>

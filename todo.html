@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>todoリスト</title>
+</head>
+
+<body>
+  <fieldset>
+    <h1>todoリスト</h1>
+    <nav>
+      <a href="./index.html">
+        <p>もどる</p>
+      </a>
+    </nav>
+  </fieldset>
+  <fieldset>
+    <legend>にゅうりょく</legend>
+    <input type="text" id="todoInput">
+    <input type="date" id="limitInput">
+    <button id="createTodoButton">create todo</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>そうさ</legend>
+    <button id="isDoneSortButton">並び替え</button>
+    <button id="isDoneDeleteButton">終了済のデータを消す</button>
+    <button id="allDeleteButton">全部消す</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>いちらん</legend>
+    <ul id="todoList"></ul>
+  </fieldset>
+
+  <script>
+    let todoArray = [];
+
+    const pushTodoToArray = (todoArray, todoData) => [...todoArray, todoData];
+
+    const createTodoTags = (todoArray) => todoArray.map((x, i) => `<li>${x.isDone ? '<s>' : ''}<p>todo: ${x.todo}</p><p>limit: ${new Date(x.limit)}</p><p><input class="todoIsDone" value="${i}" type="checkbox" ${x.isDone ? 'checked' : ''}></p>${x.isDone ? '</s>' : ''}</li>`).join('');
+
+    const updateTodoDone = (todoArray, index) => todoArray.map((x, i) => i === index ? { ...x, isDone: !x.isDone } : x);
+
+    const filterTodoDone = (todoArray) => todoArray.filter(x => x.isDone === false);
+
+    const sortTodoArrayOrderByLimit = (todoArray) => [...todoArray.sort((a, b) => a.limit > b.limit ? 1 : -1)];
+
+    const sortTodoArrayOrderByDone = (todoArray) => [...todoArray.sort((a, b) => a.isDone > b.isDone ? 1 : -1)];
+
+    const createTodayString = (date) => `${date.getFullYear()}-${String((date.getMonth() + 1)).padStart(2, '0')}-${String((date.getDate())).padStart(2, '0')}`
+
+    document.getElementById("limitInput").value = createTodayString(new Date());
+
+    document.getElementById('allDeleteButton').addEventListener('click', () => {
+      localStorage.removeItem('todoList');
+      todoArray = [];
+      document.getElementById('todoList').innerHTML = createTodoTags(todoArray);
+    });
+
+    todoArray = !localStorage.getItem('todoList') ? [] : JSON.parse(localStorage.getItem('todoList'));
+    document.getElementById('todoList').innerHTML = createTodoTags(todoArray);
+
+    const appendUpdateEvent = () => {
+      [...document.getElementsByClassName('todoIsDone')].forEach((x) => {
+        x.addEventListener('click', (e) => {
+          todoArray = updateTodoDone(todoArray, Number(e.target.value));
+          localStorage.setItem('todoList', JSON.stringify(todoArray));
+          document.getElementById('todoList').innerHTML = createTodoTags(todoArray);
+          appendUpdateEvent();
+        });
+      });
+    }
+
+    document.getElementById('createTodoButton').addEventListener('click', () => {
+      console.log(new Date(document.getElementById('limitInput').value));
+      todoArray = sortTodoArrayOrderByLimit(pushTodoToArray(todoArray, { todo: document.getElementById('todoInput').value, limit: (new Date(document.getElementById('limitInput').value)).getTime(), isDone: false, }));
+      localStorage.setItem('todoList', JSON.stringify(todoArray));
+      document.getElementById('todoList').innerHTML = createTodoTags(todoArray);
+      appendUpdateEvent();
+      document.getElementById('todoInput').value = '';
+    });
+
+    document.getElementById('isDoneDeleteButton').addEventListener('click', () => {
+      todoArray = filterTodoDone(todoArray);
+      localStorage.setItem('todoList', JSON.stringify(todoArray));
+      document.getElementById('todoList').innerHTML = createTodoTags(todoArray);
+      appendUpdateEvent();
+    });
+
+    document.getElementById('isDoneSortButton').addEventListener('click', () => {
+      todoArray = sortTodoArrayOrderByDone(todoArray);
+      localStorage.setItem('todoList', JSON.stringify(todoArray));
+      document.getElementById('todoList').innerHTML = createTodoTags(todoArray);
+      appendUpdateEvent();
+    });
+
+    appendUpdateEvent();
+
+  </script>
+</body>
+
+</html>
